@@ -44,9 +44,6 @@ class Talisman:
             self.previous.next = self
         if self.netMagicPower != 0:
             self.coinsPerMagicPower = cost / self.netMagicPower
-        # else:
-        #     self.cost = 999999999999999999999999999999999999999999999999999999
-        #     self.coinsPerMagicPower = 999999999999999999999999999999999999999999999999999999
 
     def printme(self, counter):
         print("%d: %s [%s coins] [+%d mp] [%s coins / mp] (%s)" % (counter, self.name, "{:,}".format(
