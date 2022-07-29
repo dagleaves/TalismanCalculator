@@ -93,6 +93,7 @@ def calculatebudget(budget):
     totalcoins = 0
     totalmp = 0
     counter = 0
+
     for talisman in finaltalismans:
         if totalcoins + talisman.cost < budget:
             totalcoins += talisman.cost
@@ -224,7 +225,7 @@ def inittalismans():
              "rare drop from bats, use roofed forest island to spawn them")
     Talisman("Bat Ring", "Bat Talisman", Rarity.EPIC, 49600,
              "bought w/ 1 bat talisman & 64 green candy @ fear mongerer NPC")
-    Talisman("Cheetah Talisman", "Lynx Talisman", Rarity.EPIC, 0,
+    Talisman("Cheetah Talisman", "Lynx Talisman", Rarity.EPIC, 1000000000,
              "obtained by completing three of the 4/4 races in the Dungeon Hub, horse pet + saddle")
     Talisman("Campfire Scion Badge", "Campfire Cultist Badge", Rarity.EPIC, 82700,
              "Campfire Cultist Badge & 100 ench acacia logs [growth 5 mush armor at night w/ several health 5 potions to survive trial]")
@@ -466,9 +467,10 @@ def inittalismans():
 def recursivetalismaninsert(talisman):
     if talisman.previous is not None and not finaltalismans.__contains__(talisman.previous) and talisman.previous.cost == -1:
         recursivetalismaninsert(talisman.previous)
-    finaltalismans.append(talisman)
-    if waitingtalismans.__contains__(talisman):
-        waitingtalismans.remove(talisman)
+    if talisman.cost != -1:
+        finaltalismans.append(talisman)
+        if waitingtalismans.__contains__(talisman):
+            waitingtalismans.remove(talisman)
 
 
 if __name__ == '__main__':
@@ -479,11 +481,8 @@ if __name__ == '__main__':
     talismans = sorted(talismans, key=cmp_to_key(compare))
 
     # shove up talisman upgrades which are less expensive than previous iteration
+    # shove up talisman upgrades which are less expensive than previous iteration
     # (requiring that you get the previous upgrade first)
-    # TODO fix when talisman and upgrade is same cost (only with 3+ tiered talis?) (happens when pre-fixed list has upgrade before previous and it gets stuck because not picked up in final sort)
-    # TODO fix when talisman upgrade has +0 net mp
-    # TODO fix when talisman or upgrade has -1 cost (meaning worth skipping)
-    # TODO make all next and previous checks apply recursively to account for multiple tiers of talisman
     waitingtalismans = []
     for talisman in talismans:
         if talisman.cost == -1 or talisman.netMagicPower == 0:
@@ -501,12 +500,21 @@ if __name__ == '__main__':
                     finaltalismans.remove(talisman.previous)
                 finaltalismans.append(talisman)
         elif talisman.next is not None:
-            if waitingtalismans.__contains__(talisman.next):
+            if waitingtalismans.__contains__(talisman.next) and talisman.next.cost != -1:
                 finaltalismans.append(talisman)
                 finaltalismans.append(talisman.next)
                 waitingtalismans.remove(talisman.next)
             else:
                 finaltalismans.append(talisman)
+
+    # Final iteration through waiting talismans
+    for talisman in waitingtalismans:
+        if talisman.cost != -1 and talisman.netMagicPower > 0:
+            finaltalismans.append(talisman)
+            waitingtalismans.remove(talisman)
+
+    # Final sort to fix budget after final waiting talisman check
+    finaltalismans = sorted(finaltalismans, key=cmp_to_key(compare))
 
     print("PRE-FIXED")
     counter = 1
@@ -526,4 +534,4 @@ if __name__ == '__main__':
         talisman.printme(counter)
         counter += 1
 
-    calculatebudget(500000)
+    # calculatebudget(500000)
